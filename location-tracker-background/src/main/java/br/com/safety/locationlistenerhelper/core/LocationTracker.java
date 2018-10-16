@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.github.kayvannj.permission_utils.Func2;
@@ -30,6 +29,11 @@ public class LocationTracker implements Serializable {
      * interval to send gps data
      */
     private long interval = 0;
+
+    /**
+     * minimum displacement for location updates
+     */
+    private long smallestDisplacement = 0;
 
     /**
      * name of action to send gps data
@@ -67,6 +71,11 @@ public class LocationTracker implements Serializable {
 
     public LocationTracker setInterval(long interval) {
         this.interval = interval;
+        return this;
+    }
+
+    public LocationTracker setSmallestDisplacement(long minimumDisplacementisplacement) {
+        this.smallestDisplacement = smallestDisplacement;
         return this;
     }
 
@@ -159,6 +168,7 @@ public class LocationTracker implements Serializable {
     public void saveSettingsInLocalStorage(Context context) {
         AppPreferences appPreferences = new AppPreferences(context);
         if (this.interval != 0) { appPreferences.putLong("LOCATION_INTERVAL", this.interval); }
+        if (this.smallestDisplacement != 0) { appPreferences.putLong("LOCATION_SMALLEST_DISPLACEMENT", this.smallestDisplacement); }
         appPreferences.putString("ACTION", this.actionReceiver);
         appPreferences.putBoolean("GPS", this.gps);
         appPreferences.putBoolean("NETWORK", this.netWork);

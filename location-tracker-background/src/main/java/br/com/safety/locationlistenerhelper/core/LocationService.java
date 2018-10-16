@@ -32,6 +32,8 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
     protected long interval;
 
+    protected float smallestDisplacement = 0.0f;
+
     protected String actionReceiver;
 
     protected Boolean gps;
@@ -59,6 +61,10 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
         if (this.interval <= 0){
             this.interval = this.appPreferences.getLong("LOCATION_INTERVAL", 10000L);
+        }
+
+        if (this.smallestDisplacement <= 0.0f){
+            this.smallestDisplacement = (float)this.appPreferences.getLong("LOCATION_SMALLEST_DISPLACEMENT", 0L);
         }
 
         if (this.gps == null) {
@@ -92,6 +98,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(this.interval);
         mLocationRequest.setFastestInterval(this.interval / 2);
+        mLocationRequest.setSmallestDisplacement(this.smallestDisplacement);
         if (this.gps) {
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         } else if (this.netWork){
