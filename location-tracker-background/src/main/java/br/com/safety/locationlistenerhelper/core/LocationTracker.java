@@ -36,6 +36,11 @@ public class LocationTracker implements Serializable {
     private long smallestDisplacement = 0;
 
     /**
+     * maximum time to wait before delivering batched location updates
+     */
+    private long maxWaitTime = 0;
+
+    /**
      * name of action to send gps data
      * for your broadcast receiver
      */
@@ -47,9 +52,20 @@ public class LocationTracker implements Serializable {
     private Boolean gps;
 
     /**
+     * run the location service in the foreground
+     */
+    private Boolean runInForeground = false;
+
+    /**
      * use network provider
      */
     private Boolean netWork;
+
+
+    private String foregroundNotificationTitle;
+    private String foregroundNotificationText;
+    private String foregroundNotificationTicker;
+    private String foregroundNotificationChannelId;
 
     /**
      * broadcast to get current location
@@ -69,23 +85,53 @@ public class LocationTracker implements Serializable {
         return this;
     }
 
-    public LocationTracker setInterval(long interval) {
-        this.interval = interval;
+    public LocationTracker setInterval(long value) {
+        this.interval = value;
         return this;
     }
 
-    public LocationTracker setSmallestDisplacement(long minimumDisplacementisplacement) {
-        this.smallestDisplacement = smallestDisplacement;
+    public LocationTracker setSmallestDisplacement(long value) {
+        this.smallestDisplacement = value;
         return this;
     }
 
-    public LocationTracker setGps(Boolean gps) {
-        this.gps = gps;
+    public LocationTracker setMaxWaitTime(long value) {
+        this.maxWaitTime = value;
+        return this;
+    }
+
+    public LocationTracker setGps(Boolean value) {
+        this.gps = value;
+        return this;
+    }
+
+    public LocationTracker setRunInForeground(Boolean value) {
+        this.runInForeground = value;
         return this;
     }
 
     public LocationTracker setNetWork(Boolean netWork) {
         this.netWork = netWork;
+        return this;
+    }
+
+    public LocationTracker setForegroundNotificationTitle(String value) {
+        this.foregroundNotificationTitle = value;
+        return this;
+    }
+
+    public LocationTracker setForegroundNotificationText(String value) {
+        this.foregroundNotificationText = value;
+        return this;
+    }
+
+    public LocationTracker setForegroundNotificationTicker(String value) {
+        this.foregroundNotificationTicker = value;
+        return this;
+    }
+
+    public LocationTracker setForegroundNotificationChannelId(String value) {
+        this.foregroundNotificationChannelId = value;
         return this;
     }
 
@@ -169,9 +215,19 @@ public class LocationTracker implements Serializable {
         AppPreferences appPreferences = new AppPreferences(context);
         if (this.interval != 0) { appPreferences.putLong("LOCATION_INTERVAL", this.interval); }
         if (this.smallestDisplacement != 0) { appPreferences.putLong("LOCATION_SMALLEST_DISPLACEMENT", this.smallestDisplacement); }
+        if (this.maxWaitTime != 0) {
+            appPreferences.putLong("LOCATION_MAX_WAIT_TIME", this.maxWaitTime);
+        }
         appPreferences.putString("ACTION", this.actionReceiver);
         appPreferences.putBoolean("GPS", this.gps);
+        appPreferences.putBoolean("RUN_IN_FOREGROUND", this.runInForeground);
         appPreferences.putBoolean("NETWORK", this.netWork);
+
+        appPreferences.putString("FOREGROUND_NOTIFICATION_TITLE", this.foregroundNotificationTitle);
+        appPreferences.putString("FOREGROUND_NOTIFICATION_TEXT", this.foregroundNotificationText);
+        appPreferences.putString("FOREGROUND_NOTIFICATION_TICKER", this.foregroundNotificationTicker);
+        appPreferences.putString("FOREGROUND_NOTIFICATION_CHANNEL_ID", this.foregroundNotificationChannelId);
+
     }
 
 }

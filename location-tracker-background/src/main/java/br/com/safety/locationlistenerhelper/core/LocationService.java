@@ -1,11 +1,14 @@
 package br.com.safety.locationlistenerhelper.core;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -15,7 +18,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import static br.com.safety.locationlistenerhelper.core.SettingsLocationTracker.ACTION_CURRENT_LOCATION_BROADCAST;
-import static br.com.safety.locationlistenerhelper.core.SettingsLocationTracker.ACTION_PERMISSION_DEINED;
 
 /**
  * @author netodevel
@@ -34,11 +36,20 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
     protected float smallestDisplacement = 0.0f;
 
+    protected long maxWaitTime = 0;
+
     protected String actionReceiver;
 
     protected Boolean gps;
 
     protected Boolean netWork;
+
+    protected Boolean runInForeground;
+
+    protected String foregroundNotificationTitle;
+    protected String foregroundNotificationText;
+    protected String foregroundNotificationTicker;
+    protected String foregroundNotificationChannelId;
 
     private AppPreferences appPreferences;
 
@@ -67,12 +78,29 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
             this.smallestDisplacement = (float)this.appPreferences.getLong("LOCATION_SMALLEST_DISPLACEMENT", 0L);
         }
 
+        if (this.maxWaitTime <= 0) {
+            this.maxWaitTime = this.appPreferences.getLong("LOCATION_MAX_WAIT_TIME", 0L);
+        }
+
         if (this.gps == null) {
             this.gps = this.appPreferences.getBoolean("GPS", true);
         }
 
+        if (this.runInForeground == null) {
+            this.runInForeground = this.appPreferences.getBoolean("RUN_IN_FOREGROUND", true);
+            this.foregroundNotificationTitle = this.appPreferences.getString("FOREGROUND_NOTIFICATION_TITLE", null);
+            this.foregroundNotificationText = this.appPreferences.getString("FOREGROUND_NOTIFICATION_TEXT", null);
+            this.foregroundNotificationTicker = this.appPreferences.getString("FOREGROUND_NOTIFICATION_TICKER", null);
+            this.foregroundNotificationChannelId = this.appPreferences.getString("FOREGROUND_NOTIFICATION_CHANNEL_ID", null);
+        }
+
         if (this.netWork == null) {
             this.netWork = this.appPreferences.getBoolean("NETWORK", false);
+        }
+
+        if (this.runInForeground) {
+            int FOREGROUND_ID = 1338;
+            startForeground(FOREGROUND_ID, this.buildNotification());
         }
 
         buildGoogleApiClient();
@@ -82,6 +110,18 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
             startLocationUpdates();
         }
         return START_STICKY;
+    }
+
+    protected Notification buildNotification() {
+        NotificationCompat.Builder b = new NotificationCompat.Builder(this, this.foregroundNotificationChannelId);
+        b.setOngoing(true)
+                .setSmallIcon(android.R.drawable.stat_notify_sync)
+                .setContentTitle(this.foregroundNotificationTitle)
+                .setContentText(this.foregroundNotificationText)
+                .setTicker(this.foregroundNotificationTicker);
+
+        return (b.build());
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -99,6 +139,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         mLocationRequest.setInterval(this.interval);
         mLocationRequest.setFastestInterval(this.interval / 2);
         mLocationRequest.setSmallestDisplacement(this.smallestDisplacement);
+        mLocationRequest.setMaxWaitTime(this.maxWaitTime);
         if (this.gps) {
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         } else if (this.netWork){
@@ -180,8 +221,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         mGoogleApiClient.connect();
     }
 
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
